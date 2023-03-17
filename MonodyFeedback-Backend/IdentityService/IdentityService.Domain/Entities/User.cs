@@ -12,17 +12,29 @@ public class User : IdentityUser<Guid>
     /// <summary>
     /// 头像在存储服务中的对象键
     /// </summary>
-    public string? AvatarObjectKey { get; private set; }
+    public string AvatarObjectKey { get; private set; }
+
+    public long JWTVersion { get; private set; }
 
     public User(string userName) : base(userName)
     {
         Id = Guid.NewGuid();
         CreationTime = DateTime.Now;
+        JWTVersion = 0;
+        AvatarObjectKey = "Avatar/defaultAvatar.png";  // 默认头像
     }
 
 
     public void ChangeAvatar(string newAvatarObjectKey)
     {
         AvatarObjectKey = newAvatarObjectKey;
+    }
+
+    /// <summary>
+    /// JWTVersion加1，用于需要使旧JWT失效时
+    /// </summary>
+    public void UpdateJWTVersion()
+    {
+        JWTVersion++;
     }
 }
