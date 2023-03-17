@@ -97,6 +97,10 @@ builder.Services.AddValidatorsFromAssemblyContaining<SignUpRequest>();
 builder.Services.Configure<JWTOptions>(builder.Configuration.GetSection("JWT"));
 builder.Services.Configure<COSAvatarOptions>(builder.Configuration.GetSection("COSAvatar"));
 
+// 跨域
+var urls = new string[] { builder.Configuration.GetSection("CORSUrl").Value };
+builder.Services.AddCors(options => options.AddDefaultPolicy(builder => builder.WithOrigins(urls).AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()/*.AllowCredentials()*/));
+
 // 让Swagger中带上Authorization报文头
 builder.Services.AddSwaggerGen(opt =>
 {
@@ -117,7 +121,6 @@ builder.Services.AddSwaggerGen(opt =>
 
 
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -126,6 +129,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors();
 
 app.UseHttpsRedirection();
 
