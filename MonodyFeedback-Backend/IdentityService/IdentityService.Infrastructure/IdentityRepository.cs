@@ -26,11 +26,18 @@ public class IdentityRepository : IIdentityRepository
             throw new Exception("更改用户头像对象键时用户不存在");
         }
         user.ChangeAvatar(avatarObjectKey);
-        IdentityResult result = await _userManager.UpdateAsync(user);
-        if (result.Succeeded == false)
+        await _userManager.UpdateAsync(user).CheckIdentityResultAsync();
+    }
+
+    public async Task<bool> ChangePasswordAsync(User user, string currentPassword, string newPassword)
+    {
+        IdentityResult result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        if (result.Succeeded)
         {
-            throw new Exception(JsonSerializer.Serialize(result.Errors));
+            await _userManager.SetLockoutEndDateAsync(user, null).CheckIdentityResultAsync();
+            await _userManager.ResetAccessFailedCountAsync(user).CheckIdentityResultAsync();
         }
+        return result.Succeeded;
     }
 
     public async Task<SignInResult> CheckForLoginAsync(User user, string password)
@@ -75,6 +82,11 @@ public class IdentityRepository : IIdentityRepository
         }
         result = await _userManager.AddToRoleAsync(user, "submitter");
         return result;
+    }
+
+    public Task<User?> FindUserByIdAsync(string userId)
+    {
+        return _userManager.FindByIdAsync(userId)!; 
     }
 
     public Task<User?> FindUserByUserNameAsync(string userName)

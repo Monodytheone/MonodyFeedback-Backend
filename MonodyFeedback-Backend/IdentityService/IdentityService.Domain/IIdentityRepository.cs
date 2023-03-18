@@ -11,7 +11,11 @@ public interface IIdentityRepository
 
     Task<User?> FindUserByUserNameAsync(string userName);
 
+    Task<User?> FindUserByIdAsync(string userId);
+
     Task<SignInResult> CheckForLoginAsync(User user, string password);
+
+    Task<bool> ChangePasswordAsync(User user, string currentPassword, string newPassword);
 
     Task<IList<string>> GetRolesOfUserAsync(User user);
 
