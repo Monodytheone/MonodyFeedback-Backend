@@ -8,6 +8,8 @@ using CommonInfrastructure.Filters.JWTRevoke;
 using SubmitService.Domain;
 using SubmitService.Infrastructure;
 using Microsoft.Data.SqlClient;
+using Zack.Commons;
+using MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +58,9 @@ builder.Services.Configure<MvcOptions>(options =>
 // FluentValidation
 
 // 配置
+
+// MediatR
+builder.Services.AddMediatR(ReflectionHelper.GetAllReferencedAssemblies().ToArray());
 
 // 跨域
 var urls = new string[] { builder.Configuration.GetSection("CORSUrl").Value };
