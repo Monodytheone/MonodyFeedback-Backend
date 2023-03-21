@@ -10,6 +10,7 @@ using SubmitService.Infrastructure;
 using Microsoft.Data.SqlClient;
 using Zack.Commons;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +42,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = secKey,
     };
+});
+
+// DbContext
+builder.Services.AddDbContext<SubmitDbContext>(optionsBuilder =>
+{
+    string connStr = builder.Configuration.GetConnectionString("MonodyFeedBackDB");
+    optionsBuilder.UseSqlServer(connStr);
 });
 
 // DI服务注册

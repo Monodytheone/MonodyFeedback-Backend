@@ -24,7 +24,6 @@ public class Paragraph
     public Paragraph(Submission submission, Sender sender, string textContent, List<Picture> pictures)
     {
         Id = Guid.NewGuid();
-        //Submission = submission;
         SequenceInSubmission = submission.Paragraphs.Count() + 1;
         CreationTime = DateTime.Now;
         Sender = sender;
