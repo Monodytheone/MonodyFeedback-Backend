@@ -24,10 +24,9 @@ public class Picture
 
     private Picture() { }
 
-    public Picture(/*Paragraph paragraph,*/ string bucket, string region, string fullObjectKey)
+    public Picture(string bucket, string region, string fullObjectKey)
     {
         Id = Guid.NewGuid();
-        //Paragraph = paragraph;
         Bucket = bucket;
         Region = region;
         FullObjectKey = fullObjectKey;

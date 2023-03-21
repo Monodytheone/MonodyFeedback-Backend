@@ -26,6 +26,6 @@ internal class SubmissionConfig : IEntityTypeConfiguration<Submission>
         //    ownedNavigationBuilder.Property(evaluation => evaluation.Grade).IsRequired(false);
         //});  
         builder.OwnsOne(submission => submission.Evaluation);  // 约定会把映射出的两个字段设为可空
-        builder.HasIndex(submission => submission.LastInteractionTime);  // 索引
+        builder.HasIndex(submission => submission.LastInteractionTime).IsClustered();  // 聚集索引，使Submission在表中按照最后交互时间排序，便于分配时获取提交时间最早的几个
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SubmitService.Infrastructure;
 
@@ -11,9 +12,10 @@ using SubmitService.Infrastructure;
 namespace SubmitService.Infrastructure.Migrations
 {
     [DbContext(typeof(SubmitDbContext))]
-    partial class SubmitDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230321051124_SubmissionCreationTimeIsClustered")]
+    partial class SubmissionCreationTimeIsClustered
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
