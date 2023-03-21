@@ -26,4 +26,6 @@ public interface IIdentityRepository
     Task<string> GetAvatarUrlAsync(string userId);
     
     Task<long> GetJWTVersionAsync(string userId);
+
+    Task<bool> ConfirmUserNotProcessorOrMaster(User user);
 }

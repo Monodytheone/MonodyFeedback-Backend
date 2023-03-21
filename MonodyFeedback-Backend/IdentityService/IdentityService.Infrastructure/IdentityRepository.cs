@@ -72,6 +72,17 @@ public class IdentityRepository : IIdentityRepository
         }
     }
 
+    public async Task<bool> ConfirmUserNotProcessorOrMaster(User user)
+    {
+        bool isProcessor = await _userManager.IsInRoleAsync(user, "processor");
+        bool isMaster = await _userManager.IsInRoleAsync(user, "master");
+        if (isProcessor || isMaster)
+        {
+            return false;
+        }
+        else return true;
+    }
+
     public async Task<IdentityResult> CreateSubmitterAsync(string userName, string password)
     {
         User user = new(userName);

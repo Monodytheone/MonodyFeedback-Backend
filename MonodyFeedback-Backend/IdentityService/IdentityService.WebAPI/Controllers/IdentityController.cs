@@ -147,6 +147,12 @@ public class IdentityController : ControllerBase
             return NotFound("用户名不存在");
         }
 
+        // 只有普通用户可以通过旧密码设置新密码
+        if (await _repository.ConfirmUserNotProcessorOrMaster(user) == false)
+        {
+            return StatusCode((int)HttpStatusCode.Forbidden, "该账户不允许自行重置密码，请联系管理员");
+        }
+
         bool isSuccessful = await _domainService.ChangePasswordAsync(user.Id.ToString(), request.CurrentPassword, request.NewPassword);
         if (isSuccessful)
         {
@@ -199,7 +205,6 @@ public class IdentityController : ControllerBase
     [NotCheckJWT]
     public Task<long> GetServerJWTVersion(string userId)
     {
-        Console.WriteLine("被调用");
         return _repository.GetJWTVersionAsync(userId);
     }
 }
