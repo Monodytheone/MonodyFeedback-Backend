@@ -58,6 +58,23 @@ public class IdentityDomainService
         }
     }
 
+    /// <returns>true: 成功修改密码</returns>
+    public async Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
+    {
+        User? user = await _repository.FindUserByIdAsync(userId);
+        if (user == null)
+        {
+            throw new Exception("更改密码时竟然发现用户不存在？？？");
+        }
+
+        bool successfullyChanged = await _repository.ChangePasswordAsync(user, currentPassword, newPassword);
+        if (successfullyChanged)
+        {
+            await _repository.UpdateJWTVersionAsync(user);
+        }
+        return successfullyChanged;
+    }
+
     // 虽然只是方法调用的转发，但更改用户头像显然属于核心业务逻辑，故仍写在领域服务中
     public Task ChangeAvatarObjectKeyAsync(string userId, string avatarObjectKey)
     {

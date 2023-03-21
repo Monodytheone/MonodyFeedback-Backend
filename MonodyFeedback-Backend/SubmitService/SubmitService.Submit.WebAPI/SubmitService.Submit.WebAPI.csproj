@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+    <PackageReference Include="Zack.AnyDBConfigProvider" Version="1.1.4" />
+    <PackageReference Include="Zack.JWT" Version="1.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\CommonInfrastructure\CommonInfrastructure.csproj" />
+    <ProjectReference Include="..\SubmitService.Domain\SubmitService.Domain.csproj" />
+    <ProjectReference Include="..\SubmitService.Infrastructure\SubmitService.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
