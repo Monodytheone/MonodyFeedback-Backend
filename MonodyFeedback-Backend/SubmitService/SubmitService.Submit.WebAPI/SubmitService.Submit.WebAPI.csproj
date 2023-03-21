@@ -14,10 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\CommonInfrastructure\CommonInfrastructure.csproj" />
     <ProjectReference Include="..\SubmitService.Domain\SubmitService.Domain.csproj" />
     <ProjectReference Include="..\SubmitService.Infrastructure\SubmitService.Infrastructure.csproj" />

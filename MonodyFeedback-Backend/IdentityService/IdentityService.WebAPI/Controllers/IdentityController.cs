@@ -190,4 +190,16 @@ public class IdentityController : ControllerBase
         string avatarurl = await _repository.GetAvatarUrlAsync(userId);
         return Ok(avatarurl);
     }
+
+    /// <summary>
+    /// 为了其他服务校验JWTVersion时获取服务端JWTVersion而提供的API
+    /// <para>图省事不设身份校验了，即使你通过这个接口拿到JWTVersion了又能怎样呢，你又拼不进JWT里</para>
+    /// </summary>
+    [HttpGet]
+    [NotCheckJWT]
+    public Task<long> GetServerJWTVersion(string userId)
+    {
+        Console.WriteLine("被调用");
+        return _repository.GetJWTVersionAsync(userId);
+    }
 }

@@ -10,6 +10,7 @@ using System.Text;
 using Zack.JWT;
 using MediatR;
 using Zack.Commons;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,10 +44,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     };
 });
 
+// DbContext
+builder.Services.AddDbContext<SubmitDbContext>(optionsBuilder =>
+{
+    string connStr = builder.Configuration.GetConnectionString("MonodyFeedBackDB");
+    optionsBuilder.UseSqlServer(connStr);
+});
+
 // DI服务注册
 builder.Services.AddScoped<SubmitDomainService>();
 builder.Services.AddScoped<ISubmitRepository, SubmitRepository>();
-
+builder.Services.AddScoped<IJWTVersionTool, JWTVersionToolForOtherServices>();
+builder.Services.AddHttpClient();  // 为了IHttpClientFactory
 
 // 筛选器
 builder.Services.Configure<MvcOptions>(options =>

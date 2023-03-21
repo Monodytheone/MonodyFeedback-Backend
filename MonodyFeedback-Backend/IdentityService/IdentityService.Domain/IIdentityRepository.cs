@@ -24,4 +24,6 @@ public interface IIdentityRepository
     Task ChangeAvatarObjectKeyAsync(string userId, string avatarObjectKey);
 
     Task<string> GetAvatarUrlAsync(string userId);
+
+    Task<long> GetJWTVersionAsync(string userId);
 }

@@ -9,11 +9,11 @@ namespace CommonInfrastructure.Filters.JWTRevoke;
 
 public class JWTVersionCheckFilter : IAsyncActionFilter
 {
-    private readonly UserManager<User> _userManager;
+    private readonly IJWTVersionTool _jwtVersionTool;
 
-    public JWTVersionCheckFilter(UserManager<User> userManager)
+    public JWTVersionCheckFilter(IJWTVersionTool jwtVersionTool)
     {
-        _userManager = userManager;
+        _jwtVersionTool = jwtVersionTool;
     }
 
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
@@ -38,17 +38,13 @@ public class JWTVersionCheckFilter : IAsyncActionFilter
             return;
         }
 
-        long jwtVersionFromClient = Convert.ToInt64(claimJWTVersion.Value);  // 从JWT取到的JWTVersion
+        long clientJWTVersion = Convert.ToInt64(claimJWTVersion.Value);  // 从JWT取到的JWTVersion
         string userId = context.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
-        User user = await _userManager.FindByIdAsync(userId);
-        if (user == null)
-        {
-            context.Result = new ObjectResult("用户不存在") { StatusCode = 401 };
-            return;
-        }
+
+        long serverJWTVersion = await _jwtVersionTool.GetServerJWTVersionAsync(userId);
 
         // 若服务端的JWTVersion大于客户端传来的JWTVersion，就说明客户端的JWT已经失效了
-        if (user.JWTVersion > jwtVersionFromClient)
+        if (serverJWTVersion > clientJWTVersion)
         {
             context.Result = new ObjectResult("登录状态失效，请重新登录") { StatusCode = 401 };
             return;
