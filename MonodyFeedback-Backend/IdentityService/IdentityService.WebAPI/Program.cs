@@ -88,7 +88,7 @@ builder.Services.AddScoped<IIdentityRepository, IdentityRepository>();
 builder.Services.AddScoped<IdentityDomainService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddHttpContextAccessor();// 注册HttpContextAccessor以通过依赖注入的方式拿到HttpContext
-builder.Services.AddScoped<COSAvatarService>();
+builder.Services.AddScoped<COSService>();
 builder.Services.AddScoped<IJWTVersionTool, JWTVersionTool>();
 
 // FluentValidation

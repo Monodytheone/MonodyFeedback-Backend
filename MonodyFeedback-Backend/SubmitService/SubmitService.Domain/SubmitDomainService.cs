@@ -11,8 +11,9 @@ public class SubmitDomainService
         _submitRepository = submitRepository;
     }
 
-    //public Submission CreateSubmissionWithFirstParagraph()
-    //{
+    public Submission CreateSubmissionWithFirstParagraph(Guid submitterId, string submitterName, string? telNumber, string? email, string textContent, List<Picture> pictures)
+    {
+        return Submission.Create(submitterId, submitterName, telNumber, email, textContent, pictures);
+    }
 
-    //}
 }

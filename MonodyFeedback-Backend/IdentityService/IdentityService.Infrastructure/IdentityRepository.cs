@@ -2,6 +2,7 @@
 using IdentityService.Domain;
 using IdentityService.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
 
 namespace IdentityService.Infrastructure;
@@ -9,12 +10,14 @@ namespace IdentityService.Infrastructure;
 public class IdentityRepository : IIdentityRepository
 {
     private readonly UserManager<User> _userManager;
-    private readonly COSAvatarService _avatarService;
+    private readonly COSService _cosService;
+    private readonly IOptionsSnapshot<COSAvatarOptions> _cosAvatarOptions;
 
-    public IdentityRepository(UserManager<User> userManager, COSAvatarService avatarService)
+    public IdentityRepository(UserManager<User> userManager, COSService cosService, IOptionsSnapshot<COSAvatarOptions> cosAvatarOptions)
     {
         _userManager = userManager;
-        _avatarService = avatarService;
+        _cosService = cosService;
+        _cosAvatarOptions = cosAvatarOptions;
     }
 
     public async Task ChangeAvatarObjectKeyAsync(string userId, string avatarObjectKey)
@@ -105,7 +108,7 @@ public class IdentityRepository : IIdentityRepository
         return _userManager.FindByNameAsync(userName)!;
     }
 
-    public async Task<string> GetAvatarUrlAsync(string userId)
+    public async Task<string> GetAvatarUrlAsync(string userId, long durationSeconds)
     {
         User user = await _userManager.FindByIdAsync(userId);
         if (user == null)
@@ -114,7 +117,9 @@ public class IdentityRepository : IIdentityRepository
             throw new Exception("生成头像预签名Url时用户不存在");
         }
         string avatarObjectKey = user.AvatarObjectKey;
-        return _avatarService.GeneratePreSignatureAvatarUrl(avatarObjectKey);
+        COSAvatarOptions avatarOptions = _cosAvatarOptions.Value;
+        string avatarUrl = _cosService.GeneratePreSignatureAvatarUrls(avatarOptions.AppId, avatarOptions.Region, avatarOptions.SecretId, avatarOptions.SecretKey, durationSeconds, avatarOptions.Bucket, avatarObjectKey)[0];
+        return avatarUrl;
     }
 
     public async Task<long> GetJWTVersionAsync(string userId)

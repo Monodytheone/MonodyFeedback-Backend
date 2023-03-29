@@ -11,6 +11,11 @@ using Zack.JWT;
 using MediatR;
 using Zack.Commons;
 using Microsoft.EntityFrameworkCore;
+using Zack.ASPNETCore;
+using FluentValidation;
+using SubmitService.Submit.WebAPI.Controllers.Requests;
+using Microsoft.Extensions.DependencyInjection;
+using CommonInfrastructure.TencentCOS;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,19 +59,23 @@ builder.Services.AddDbContext<SubmitDbContext>(optionsBuilder =>
 // DI服务注册
 builder.Services.AddScoped<SubmitDomainService>();
 builder.Services.AddScoped<ISubmitRepository, SubmitRepository>();
-builder.Services.AddScoped<IJWTVersionTool, JWTVersionToolForOtherServices>();
-builder.Services.AddHttpClient();  // 为了IHttpClientFactory
+builder.Services.AddScoped<IJWTVersionTool, JWTVersionToolForOtherServices>();  // JWTVersion筛选器获取服务端JWT的工具
+builder.Services.AddHttpClient();  // 为了将IHttpClientFactory注入进JWTVersionToolForOtherServices
+builder.Services.AddScoped<COSService>();
 
 // 筛选器
 builder.Services.Configure<MvcOptions>(options =>
 {
+    options.Filters.Add<UnitOfWorkFilter>();  // 在Action方法执行结束后统一SaveChangesAsync
     options.Filters.Add<ExceptionFilter>();  // 异常筛选器，根据运行环境的不同返回不同的错误信息
     options.Filters.Add<JWTVersionCheckFilter>();  // 判断JWT是否失效的筛选器
 });
 
 // FluentValidation
+builder.Services.AddValidatorsFromAssemblyContaining<SubmitRequestValidator>();
 
 // 配置
+builder.Services.Configure<COSPictureOptions>(builder.Configuration.GetSection("COSPicture"));
 
 // MediatR
 builder.Services.AddMediatR(ReflectionHelper.GetAllReferencedAssemblies().ToArray());

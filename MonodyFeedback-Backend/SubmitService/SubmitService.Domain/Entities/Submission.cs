@@ -1,5 +1,6 @@
 ﻿using SubmitService.Domain.Entities.Enums;
 using SubmitService.Domain.Entities.ValueObjects;
+using SubmitService.Domain.Notifications;
 using Zack.DomainCommons.Models;
 
 namespace SubmitService.Domain.Entities;
@@ -54,12 +55,14 @@ public record Submission : BaseEntity, IAggregateRoot
             SubmitterId = submitterId,
             SubmitterName = submitterName,
             SubmissionStatus = SubmissionStatus.ToBeAssigned,
-            SubmitterTelNumber = submitterTelNumber,
-            SubmitterEmail = submitterEmail,
+            // 若电话和邮箱传进来的是空串，则赋null
+            SubmitterTelNumber = submitterTelNumber == string.Empty ? null : submitterTelNumber,
+            SubmitterEmail = submitterEmail == string.Empty ? null : submitterEmail,
             CreationTime = DateTime.Now,
             LastInteractionTime = DateTime.Now,
         };
         submission.Paragraphs.Add(new(submission, Sender.Submitter, textContent, pictures));
+        submission.AddDomainEventIfAbsent(new SubmissionCreateNotification(submission));
         return submission;
     }
 
@@ -101,6 +104,7 @@ public record Submission : BaseEntity, IAggregateRoot
     {
         this.SubmissionStatus = SubmissionStatus.Closed; 
         this.ClosingTime = DateTime.Now;
+        base.AddDomainEventIfAbsent(new SubmissionCloseNotification(this));
         return this;
     }
 

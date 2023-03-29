@@ -4,7 +4,9 @@ using CommonInfrastructure.TencentCOS.Responses;
 using FluentValidation;
 using IdentityService.Domain;
 using IdentityService.Domain.Entities;
+using IdentityService.Infrastructure;
 using IdentityService.WebAPI.Controllers.Requests;
+using IdentityService.WebAPI.Controllers.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -19,7 +21,7 @@ public class IdentityController : ControllerBase
 {
     private readonly IIdentityRepository _repository;
     private readonly IdentityDomainService _domainService;
-    private readonly COSAvatarService _avatarService;
+    private readonly COSService _cosService;
     private readonly IOptionsSnapshot<COSAvatarOptions> _avatarOptions;
 
     // Validators of FluentValidation:
@@ -28,16 +30,16 @@ public class IdentityController : ControllerBase
     private readonly IValidator<ChangeSubmitterPasswordWithJWTRequest> _changeSubmitterPasswordValidator;
     private readonly IValidator<ChangeSubmitterPasswordWithUserNameRequest> _changeSubmitterPasswordWithUserNameValidator;
 
-    public IdentityController(IIdentityRepository repository, IdentityDomainService domainService, IValidator<SignUpRequest> signUpValidator, COSAvatarService avatarService, IOptionsSnapshot<COSAvatarOptions> avatarOptions, IValidator<ChangeSubmitterPasswordWithJWTRequest> changeSubmitterPasswordValidator, IValidator<LoginRequest> loginValidator, IValidator<ChangeSubmitterPasswordWithUserNameRequest> changeSubmitterPasswordWithUserNameValidator)
+    public IdentityController(IIdentityRepository repository, IdentityDomainService domainService, IValidator<SignUpRequest> signUpValidator, IOptionsSnapshot<COSAvatarOptions> avatarOptions, IValidator<ChangeSubmitterPasswordWithJWTRequest> changeSubmitterPasswordValidator, IValidator<LoginRequest> loginValidator, IValidator<ChangeSubmitterPasswordWithUserNameRequest> changeSubmitterPasswordWithUserNameValidator, COSService cosService)
     {
         _repository = repository;
         _domainService = domainService;
         _signUpValidator = signUpValidator;
-        _avatarService = avatarService;
         _avatarOptions = avatarOptions;
         _changeSubmitterPasswordValidator = changeSubmitterPasswordValidator;
         _loginValidator = loginValidator;
         _changeSubmitterPasswordWithUserNameValidator = changeSubmitterPasswordWithUserNameValidator;
+        _cosService = cosService;
     }
 
     /// <summary>
@@ -107,6 +109,13 @@ public class IdentityController : ControllerBase
         {
             return StatusCode((int)HttpStatusCode.BadRequest, "用户名或密码错误");
         }
+    }
+
+    [HttpGet]
+    [Authorize]
+    public GetUserInfoResponse GetUserInfo()
+    {
+        return new(this.User.FindFirstValue(ClaimTypes.NameIdentifier), this.User.FindFirstValue(ClaimTypes.Name));
     }
 
     [HttpPost]
@@ -181,7 +190,8 @@ public class IdentityController : ControllerBase
     {       
         string userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
         string objectKey = $"{_avatarOptions.Value.AvatarFolder}/{userId}.png";
-        TempCredentialResponse response = _avatarService.GeneratePutPictureTempCredential(objectKey, 60);
+        COSAvatarOptions cosAvatarOptions = _avatarOptions.Value;
+        TempCredentialResponse response = _cosService.GeneratePutObjectTempCredential(cosAvatarOptions.Bucket, cosAvatarOptions.Region, cosAvatarOptions.SecretId, cosAvatarOptions.SecretKey, objectKey, durationSeconds: 60);
         return Ok(response);      
     }
 
@@ -193,7 +203,7 @@ public class IdentityController : ControllerBase
     public async Task<ActionResult<string>> GetPreSignatureAvatarUrl()
     {       
         string userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        string avatarurl = await _repository.GetAvatarUrlAsync(userId);
+        string avatarurl = await _repository.GetAvatarUrlAsync(userId, 60);
         return Ok(avatarurl);
     }
 
