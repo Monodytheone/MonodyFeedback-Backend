@@ -38,6 +38,16 @@ public class IdentityDomainService
         }
     }
 
+    public async Task LogoutAsync(string userId)
+    {
+        User? user = await _repository.FindUserByIdAsync(userId);
+        if(user == null)
+        {
+            throw new Exception("登出时竟然发现用户不存在");  // 基本不可能出现这个情况故直接抛错，扔给异常筛选器处理
+        }
+        await _repository.UpdateJWTVersionAsync(user);
+    }
+
     public async Task<(SignInResult, string?)> LoginAsync(string userName, string password)
     {
         User? user = await _repository.FindUserByUserNameAsync(userName);

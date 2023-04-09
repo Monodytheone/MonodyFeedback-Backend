@@ -23,7 +23,11 @@ public interface IIdentityRepository
 
     Task ChangeAvatarObjectKeyAsync(string userId, string avatarObjectKey);
 
-    Task<string> GetAvatarUrlAsync(string userId);
+    Task<string> GetAvatarUrlAsync(string userId, long durationSeconds);
     
     Task<long> GetJWTVersionAsync(string userId);
+
+    Task<bool> ConfirmUserNotProcessorOrMaster(User user);
+
+    Task CreateProcessorAsync(string processorName, string password);
 }
