@@ -21,20 +21,15 @@ public class Picture
     /// </summary>
     public string FullObjectKey { get; init; }
 
-    /// <summary>
-    /// 在Paragraph中的序号
-    /// </summary>
-    public byte Sequence { get; init; }
-
 
     private Picture() { }
 
-    public Picture(string bucket, string region, string fullObjectKey, byte sequence)
+    public Picture(/*Paragraph paragraph,*/ string bucket, string region, string fullObjectKey)
     {
-        //Id = Guid.NewGuid();
+        Id = Guid.NewGuid();
+        //Paragraph = paragraph;
         Bucket = bucket;
         Region = region;
         FullObjectKey = fullObjectKey;
-        Sequence = sequence;
     }
 }

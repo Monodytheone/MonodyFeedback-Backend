@@ -1,6 +1,6 @@
-﻿namespace SubmitService.Infrastructure;
+﻿namespace CommonInfrastructure.TencentCOS;
 
-public class COSPictureOptions
+public class COSAvatarOptions
 {
     public string AppId { get; set; }
 
@@ -12,5 +12,8 @@ public class COSPictureOptions
 
     public string Region { get; set; }
 
-    public string PictureFolder { get; set; }
+    /// <summary>
+    /// 头像所处的文件夹名称
+    /// </summary>
+    public string AvatarFolder { get; set; }
 }

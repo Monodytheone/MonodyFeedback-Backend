@@ -1,5 +1,4 @@
 ﻿using CommonInfrastructure.Filters.JWTRevoke;
-using IdentityService.Domain;
 using IdentityService.Domain.Entities;
 using IdentityService.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
@@ -15,7 +14,6 @@ namespace IdentityService.WebAPI.Controllers;
 [ApiController]
 public class InitController : ControllerBase
 {
-    private readonly IIdentityRepository _repository;
     private readonly UserManager<User> _userManager;
     //private readonly IdUserManager _userManager;
 
@@ -23,17 +21,16 @@ public class InitController : ControllerBase
     private readonly HttpContext _httpContext;
     private readonly IOptionsSnapshot<JWTOptions> _jwtOptions;
 
-    public InitController(RoleManager<Role> roleManager, UserManager<User> userManager, IHttpContextAccessor httpContextAccessor, IOptionsSnapshot<JWTOptions> jwtOptions, IIdentityRepository repository)
+    public InitController(RoleManager<Role> roleManager, UserManager<User> userManager, IHttpContextAccessor httpContextAccessor, IOptionsSnapshot<JWTOptions> jwtOptions)
     {
         _roleManager = roleManager;
         _userManager = userManager;
         _httpContext = httpContextAccessor.HttpContext;
         _jwtOptions = jwtOptions;
-        _repository = repository;
     }
 
     [HttpPost]
-    [Authorize(Roles = "master")]
+    [NotCheckJWT]
     public async Task<ActionResult<string>> InitIdentity()
     {
         // 创建三个Role
@@ -89,39 +86,8 @@ public class InitController : ControllerBase
         return Ok();
     }
 
-    [HttpPost]
-    [Authorize(Roles = "master")]
-    public async Task<ActionResult> GenerateProcessorAccount(string processorName, string password)
-    {
-        await _repository.CreateProcessorAsync(processorName, password);
-        // 错误都抛了错，由异常筛选器报500
-        return Ok();
-    }
-
-    [HttpPost]
-    [Authorize(Roles = "master")]
-    public async Task<ActionResult> UnlockAccount(string userNameOrId, bool useId)
-    {
-        User user;
-        if (useId)
-        {
-            user = await _userManager.FindByIdAsync(userNameOrId);
-        }
-        else
-        {
-            user = await _userManager.FindByNameAsync(userNameOrId);
-        }
-        if (user == null) 
-        { 
-            return NotFound("未找到用户");
-        }
-        await _userManager.SetLockoutEndDateAsync(user, null).CheckIdentityResultAsync();
-        await _userManager.ResetAccessFailedCountAsync(user).CheckIdentityResultAsync();
-        return Ok();
-    }
-
     [HttpDelete]
-    [Authorize(Roles = "master")]
+    [NotCheckJWT]
     public async Task<ActionResult> DeleteUser(Guid userId)
     {
         User? user = await _userManager.FindByIdAsync(userId.ToString());
@@ -144,10 +110,10 @@ public class InitController : ControllerBase
     [Authorize(Roles = "submitter")]
     public string GetJWTPayload()
     {
-        string id = _httpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
-        string userName = this.User.FindFirst(ClaimTypes.Name)!.Value;
+        string id = _httpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        string userName = this.User.FindFirst(ClaimTypes.Name).Value;
         string[] roles = User.FindAll(ClaimTypes.Role).Select(x => x.Value).ToArray();
-        string jwtVersion = User.FindFirst("JWTVersion")!.Value;
+        string jwtVersion = User.FindFirst("JWTVersion").Value;
         return $"Id = {id}\nUserName = {userName}\nrole = {roles[0]}\nJWTVersion = {jwtVersion}";
     }
 
