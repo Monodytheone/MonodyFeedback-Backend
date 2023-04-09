@@ -28,4 +28,6 @@ public interface IIdentityRepository
     Task<long> GetJWTVersionAsync(string userId);
 
     Task<bool> ConfirmUserNotProcessorOrMaster(User user);
+
+    Task CreateProcessorAsync(string processorName, string password);
 }

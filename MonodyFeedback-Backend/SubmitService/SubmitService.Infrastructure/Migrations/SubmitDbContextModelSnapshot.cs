@@ -168,7 +168,7 @@ namespace SubmitService.Infrastructure.Migrations
 
             modelBuilder.Entity("SubmitService.Domain.Entities.Submission", b =>
                 {
-                    b.OwnsOne("SubmitService.Domain.Entities.ValueObjects.Evaluation", "Evaluation", b1 =>
+                    b.OwnsOne("SubmitService.Domain.Entities.Submission.Evaluation#SubmitService.Domain.Entities.ValueObjects.Evaluation", "Evaluation", b1 =>
                         {
                             b1.Property<Guid>("SubmissionId")
                                 .HasColumnType("uniqueidentifier");
@@ -181,7 +181,7 @@ namespace SubmitService.Infrastructure.Migrations
 
                             b1.HasKey("SubmissionId");
 
-                            b1.ToTable("T_Submissions");
+                            b1.ToTable("T_Submissions", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("SubmissionId");

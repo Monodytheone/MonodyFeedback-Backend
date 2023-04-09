@@ -3,8 +3,6 @@ using COSSTS;
 using COSXML.Auth;
 using COSXML.Model.Tag;
 using COSXML;
-using Microsoft.AspNetCore.Cors.Infrastructure;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 
 namespace CommonInfrastructure.TencentCOS;

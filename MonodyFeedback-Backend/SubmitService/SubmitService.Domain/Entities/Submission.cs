@@ -69,10 +69,19 @@ public record Submission : BaseEntity, IAggregateRoot
     /// <summary>
     /// 分配（指定处理者）
     /// </summary>
-    public Submission Assign(Guid processorId)
+    public bool Assign(Guid processorId)
     {
-        this.ProcessorId = processorId;
-        return this;
+        // 只是判断一下是否误将已分配的Submission进行分配了，此处并不能实现并发控制
+        if (SubmissionStatus == SubmissionStatus.ToBeAssigned)
+        {
+            this.ProcessorId = processorId;
+            this.LastInteractionTime = DateTime.Now;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     public Submission AddParagraph(string textContent, Sender sender, List<Picture> pictures)
@@ -85,6 +94,24 @@ public record Submission : BaseEntity, IAggregateRoot
     public Submission ChangeStatus(SubmissionStatus status)
     {
         this.SubmissionStatus = status;
+        this.UpdateLastInteractionTime();
+
+        // 发布领域事件。即使是可能用不到的领域事件如待处理Notification也尽量发布一下
+        switch (status)
+        {
+            case SubmissionStatus.ToBeEvaluated:
+                this.AddDomainEventIfAbsent(new SubmissionToBeEvaluatedNotification(this)); 
+                break;
+            case SubmissionStatus.ToBeSupplemented:
+                this.AddDomainEventIfAbsent(new SubmissionToBeSupplementedNotification(this));
+                break;
+            case SubmissionStatus.Closed:
+                this.AddDomainEventIfAbsent(new SubmissionCloseNotification(this));
+                break;
+            case SubmissionStatus.ToBeProcessed:
+                this.AddDomainEventIfAbsent(new SubmissionToBeProcessedNotification(this));
+                break;
+        }
         return this;
     }
 
@@ -97,14 +124,14 @@ public record Submission : BaseEntity, IAggregateRoot
     public Submission SetEvaluation(bool isSolved, byte Grade)
     {
         this.Evaluation = new(isSolved, Grade);
+        this.ChangeStatus(SubmissionStatus.Closed);
         return this;
     }
 
     public Submission Close()
     {
-        this.SubmissionStatus = SubmissionStatus.Closed; 
         this.ClosingTime = DateTime.Now;
-        base.AddDomainEventIfAbsent(new SubmissionCloseNotification(this));
+        this.ChangeStatus(SubmissionStatus.Closed);
         return this;
     }
 

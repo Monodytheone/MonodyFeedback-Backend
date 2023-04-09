@@ -111,9 +111,28 @@ public class IdentityController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// 使JWT失效，用于退出登录
+    /// </summary>
+    /// <returns></returns>
+    [HttpPost]
+    [Authorize]
+    public Task Logout()
+    {
+        string userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return _domainService.LogoutAsync(userId);
+    }
+
     [HttpGet]
     [Authorize]
     public GetUserInfoResponse GetUserInfo()
+    {
+        return new(this.User.FindFirstValue(ClaimTypes.NameIdentifier), this.User.FindFirstValue(ClaimTypes.Name));
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "processor")]
+    public GetUserInfoResponse GetProcessorInfo()
     {
         return new(this.User.FindFirstValue(ClaimTypes.NameIdentifier), this.User.FindFirstValue(ClaimTypes.Name));
     }
@@ -169,7 +188,7 @@ public class IdentityController : ControllerBase
         }
         else
         {
-            return BadRequest();
+            return BadRequest("修改失败");
         }        
     }
 

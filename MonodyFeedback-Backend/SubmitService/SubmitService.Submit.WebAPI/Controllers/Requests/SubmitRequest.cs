@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 
 namespace SubmitService.Submit.WebAPI.Controllers.Requests;
 public record SubmitRequest(string? TelNumber, string? Email, string TextContent, List<PictureInfo> PictureInfos);
-public record PictureInfo(string BucketName, string Region, string FullObjectKey);
 
 public class SubmitRequestValidator : AbstractValidator<SubmitRequest>
 {

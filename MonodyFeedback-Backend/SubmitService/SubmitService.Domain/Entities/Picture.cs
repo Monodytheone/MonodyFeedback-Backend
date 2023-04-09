@@ -31,7 +31,7 @@ public class Picture
 
     public Picture(string bucket, string region, string fullObjectKey, byte sequence)
     {
-        Id = Guid.NewGuid();
+        //Id = Guid.NewGuid();
         Bucket = bucket;
         Region = region;
         FullObjectKey = fullObjectKey;

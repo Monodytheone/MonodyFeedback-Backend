@@ -108,6 +108,21 @@ public class IdentityRepository : IIdentityRepository
         return _userManager.FindByNameAsync(userName)!;
     }
 
+    public async Task CreateProcessorAsync(string processorName, string password)
+    {
+        User? user = await _userManager.FindByNameAsync(processorName);
+        if (user != null)
+        {
+            throw new Exception("用户名已存在");  // 扔给异常筛选器
+        }
+        user = new User(processorName);
+        await _userManager.CreateAsync(user, password).CheckIdentityResultAsync();
+        if (await _userManager.IsInRoleAsync(user, "processor") == false)
+        {
+            await _userManager.AddToRoleAsync(user, "processor").CheckIdentityResultAsync();
+        }
+    }
+
     public async Task<string> GetAvatarUrlAsync(string userId, long durationSeconds)
     {
         User user = await _userManager.FindByIdAsync(userId);

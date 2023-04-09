@@ -16,6 +16,7 @@ using FluentValidation;
 using SubmitService.Submit.WebAPI.Controllers.Requests;
 using Microsoft.Extensions.DependencyInjection;
 using CommonInfrastructure.TencentCOS;
+using CommonInfrastructure.Filters.Transaction;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +68,7 @@ builder.Services.AddScoped<COSService>();
 builder.Services.Configure<MvcOptions>(options =>
 {
     options.Filters.Add<UnitOfWorkFilter>();  // 在Action方法执行结束后统一SaveChangesAsync
+    options.Filters.Add<TransactionScopeFilter>();  // 自动启用事务管理的筛选器(发生异常后回滚数据库)
     options.Filters.Add<ExceptionFilter>();  // 异常筛选器，根据运行环境的不同返回不同的错误信息
     options.Filters.Add<JWTVersionCheckFilter>();  // 判断JWT是否失效的筛选器
 });
