@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SubmitService.Infrastructure;
 
@@ -11,9 +12,10 @@ using SubmitService.Infrastructure;
 namespace SubmitService.Infrastructure.Migrations
 {
     [DbContext(typeof(SubmitDbContext))]
-    partial class SubmitDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230322090757_AddPictureSequence")]
+    partial class AddPictureSequence
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -168,7 +170,7 @@ namespace SubmitService.Infrastructure.Migrations
 
             modelBuilder.Entity("SubmitService.Domain.Entities.Submission", b =>
                 {
-                    b.OwnsOne("SubmitService.Domain.Entities.Submission.Evaluation#SubmitService.Domain.Entities.ValueObjects.Evaluation", "Evaluation", b1 =>
+                    b.OwnsOne("SubmitService.Domain.Entities.ValueObjects.Evaluation", "Evaluation", b1 =>
                         {
                             b1.Property<Guid>("SubmissionId")
                                 .HasColumnType("uniqueidentifier");
@@ -181,7 +183,7 @@ namespace SubmitService.Infrastructure.Migrations
 
                             b1.HasKey("SubmissionId");
 
-                            b1.ToTable("T_Submissions", (string)null);
+                            b1.ToTable("T_Submissions");
 
                             b1.WithOwner()
                                 .HasForeignKey("SubmissionId");

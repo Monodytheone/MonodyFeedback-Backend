@@ -1,5 +1,6 @@
 ﻿using CommonInfrastructure.Filters;
 using CommonInfrastructure.Filters.JWTRevoke;
+using CommonInfrastructure.Filters.Transaction;
 using CommonInfrastructure.TencentCOS;
 using FluentValidation;
 using IdentityService.Domain;
@@ -36,7 +37,15 @@ builder.WebHost.ConfigureAppConfiguration((hostCtx, configBuilder) =>
 builder.Services.AddDbContext<IdDbContext>(optionsBuilder =>
 {
     string connStr = builder.Configuration.GetConnectionString("MonodyFeedBackDB");
-    optionsBuilder.UseSqlServer(connStr);
+    optionsBuilder.UseSqlServer(connStr, sqlOptions =>
+    {
+        // retry logic
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: new List<int> { 19 }
+        );
+    });
 });
 builder.Services.AddDataProtection();
 builder.Services.AddIdentityCore<User>(options =>
@@ -79,6 +88,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 // 筛选器
 builder.Services.Configure<MvcOptions>(options =>
 {
+    // 不要对标识框架的DbContext乱搞什么异常筛选器事务筛选器，它自己会干的
     options.Filters.Add<ExceptionFilter>();  // 异常筛选器，根据运行环境的不同返回不同的错误信息
     options.Filters.Add<JWTVersionCheckFilter>();  // 判断JWT是否失效的筛选器
 });
@@ -88,7 +98,7 @@ builder.Services.AddScoped<IIdentityRepository, IdentityRepository>();
 builder.Services.AddScoped<IdentityDomainService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddHttpContextAccessor();// 注册HttpContextAccessor以通过依赖注入的方式拿到HttpContext
-builder.Services.AddScoped<COSAvatarService>();
+builder.Services.AddScoped<COSService>();
 builder.Services.AddScoped<IJWTVersionTool, JWTVersionTool>();
 
 // FluentValidation

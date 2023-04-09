@@ -4,7 +4,9 @@ using CommonInfrastructure.TencentCOS.Responses;
 using FluentValidation;
 using IdentityService.Domain;
 using IdentityService.Domain.Entities;
+using IdentityService.Infrastructure;
 using IdentityService.WebAPI.Controllers.Requests;
+using IdentityService.WebAPI.Controllers.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -19,7 +21,7 @@ public class IdentityController : ControllerBase
 {
     private readonly IIdentityRepository _repository;
     private readonly IdentityDomainService _domainService;
-    private readonly COSAvatarService _avatarService;
+    private readonly COSService _cosService;
     private readonly IOptionsSnapshot<COSAvatarOptions> _avatarOptions;
 
     // Validators of FluentValidation:
@@ -28,16 +30,16 @@ public class IdentityController : ControllerBase
     private readonly IValidator<ChangeSubmitterPasswordWithJWTRequest> _changeSubmitterPasswordValidator;
     private readonly IValidator<ChangeSubmitterPasswordWithUserNameRequest> _changeSubmitterPasswordWithUserNameValidator;
 
-    public IdentityController(IIdentityRepository repository, IdentityDomainService domainService, IValidator<SignUpRequest> signUpValidator, COSAvatarService avatarService, IOptionsSnapshot<COSAvatarOptions> avatarOptions, IValidator<ChangeSubmitterPasswordWithJWTRequest> changeSubmitterPasswordValidator, IValidator<LoginRequest> loginValidator, IValidator<ChangeSubmitterPasswordWithUserNameRequest> changeSubmitterPasswordWithUserNameValidator)
+    public IdentityController(IIdentityRepository repository, IdentityDomainService domainService, IValidator<SignUpRequest> signUpValidator, IOptionsSnapshot<COSAvatarOptions> avatarOptions, IValidator<ChangeSubmitterPasswordWithJWTRequest> changeSubmitterPasswordValidator, IValidator<LoginRequest> loginValidator, IValidator<ChangeSubmitterPasswordWithUserNameRequest> changeSubmitterPasswordWithUserNameValidator, COSService cosService)
     {
         _repository = repository;
         _domainService = domainService;
         _signUpValidator = signUpValidator;
-        _avatarService = avatarService;
         _avatarOptions = avatarOptions;
         _changeSubmitterPasswordValidator = changeSubmitterPasswordValidator;
         _loginValidator = loginValidator;
         _changeSubmitterPasswordWithUserNameValidator = changeSubmitterPasswordWithUserNameValidator;
+        _cosService = cosService;
     }
 
     /// <summary>
@@ -109,6 +111,32 @@ public class IdentityController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// 使JWT失效，用于退出登录
+    /// </summary>
+    /// <returns></returns>
+    [HttpPost]
+    [Authorize]
+    public Task Logout()
+    {
+        string userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return _domainService.LogoutAsync(userId);
+    }
+
+    [HttpGet]
+    [Authorize]
+    public GetUserInfoResponse GetUserInfo()
+    {
+        return new(this.User.FindFirstValue(ClaimTypes.NameIdentifier), this.User.FindFirstValue(ClaimTypes.Name));
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "processor")]
+    public GetUserInfoResponse GetProcessorInfo()
+    {
+        return new(this.User.FindFirstValue(ClaimTypes.NameIdentifier), this.User.FindFirstValue(ClaimTypes.Name));
+    }
+
     [HttpPost]
     [Authorize(Roles = "submitter")]  // 只有普通用户可以通过旧密码设置新密码
     public async Task<ActionResult> ChangeSubmitterPasswordWithJWT(ChangeSubmitterPasswordWithJWTRequest request)
@@ -147,6 +175,12 @@ public class IdentityController : ControllerBase
             return NotFound("用户名不存在");
         }
 
+        // 只有普通用户可以通过旧密码设置新密码
+        if (await _repository.ConfirmUserNotProcessorOrMaster(user) == false)
+        {
+            return StatusCode((int)HttpStatusCode.Forbidden, "该账户不允许自行重置密码，请联系管理员");
+        }
+
         bool isSuccessful = await _domainService.ChangePasswordAsync(user.Id.ToString(), request.CurrentPassword, request.NewPassword);
         if (isSuccessful)
         {
@@ -154,7 +188,7 @@ public class IdentityController : ControllerBase
         }
         else
         {
-            return BadRequest();
+            return BadRequest("修改失败");
         }        
     }
 
@@ -175,7 +209,8 @@ public class IdentityController : ControllerBase
     {       
         string userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
         string objectKey = $"{_avatarOptions.Value.AvatarFolder}/{userId}.png";
-        TempCredentialResponse response = _avatarService.GeneratePutPictureTempCredential(objectKey, 60);
+        COSAvatarOptions cosAvatarOptions = _avatarOptions.Value;
+        TempCredentialResponse response = _cosService.GeneratePutObjectTempCredential(cosAvatarOptions.Bucket, cosAvatarOptions.Region, cosAvatarOptions.SecretId, cosAvatarOptions.SecretKey, objectKey, durationSeconds: 60);
         return Ok(response);      
     }
 
@@ -187,7 +222,7 @@ public class IdentityController : ControllerBase
     public async Task<ActionResult<string>> GetPreSignatureAvatarUrl()
     {       
         string userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        string avatarurl = await _repository.GetAvatarUrlAsync(userId);
+        string avatarurl = await _repository.GetAvatarUrlAsync(userId, 60);
         return Ok(avatarurl);
     }
 
@@ -199,7 +234,6 @@ public class IdentityController : ControllerBase
     [NotCheckJWT]
     public Task<long> GetServerJWTVersion(string userId)
     {
-        Console.WriteLine("被调用");
         return _repository.GetJWTVersionAsync(userId);
     }
 }
