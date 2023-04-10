@@ -18,6 +18,12 @@ public interface ISubmitRepository
     /// </summary>
     Task<List<SubmissionInfo>> GetSubmissionInfosOfProcessorInStatus_InOrderFromLaterToEarly_Async(Guid processorId, SubmissionStatus status);
 
+    /// <summary>
+    /// 分页获取某个处理者拥有的某种状态的Submission的简略信息列表
+    /// </summary>
+    /// <returns>按照最后交互时间，从晚到早排序</returns>
+    Task<List<SubmissionInfo>> PaginatlyGetSubmissionInfosOfProcessor_InStatus_InOrderFromLaterToEarly_Async(Guid processorId, SubmissionStatus status, int page, int pageSize = 10);
+
     Task<int> GetToBeProcessedNumberOfProcessorAsync(string processorId);
 
     /// <summary>

@@ -88,6 +88,25 @@ public class SubmitRepository : ISubmitRepository
             .OrderByDescending(info => info.LastInteractionTime).ToList();
     }
 
+
+    public Task<List<SubmissionInfo>> PaginatlyGetSubmissionInfosOfProcessor_InStatus_InOrderFromLaterToEarly_Async(Guid processorId, SubmissionStatus status, int page, int pageSize = 10)
+    {
+        int numOfSkip = (page - 1) * pageSize;
+        return _dbContext.Submissions
+            .AsNoTracking()
+            .Include(submission => submission.Paragraphs)
+            .Where(submission => submission.ProcessorId == processorId && submission.SubmissionStatus == status)
+            .OrderByDescending(submission => submission.LastInteractionTime)
+            .Skip(numOfSkip).Take(pageSize)
+            .Select(submission => new SubmissionInfo(
+                submission.Id.ToString(),
+                submission.Paragraphs.First(paragraph => paragraph.SequenceInSubmission == 1).TextContent.GetFirst15Wrods(),
+                submission.LastInteractionTime,
+                submission.SubmissionStatus
+            ))
+            .ToListAsync();
+    }
+
     public Task<int> GetToBeProcessedNumberOfProcessorAsync(string processorId)
     {
         return _dbContext.Submissions
