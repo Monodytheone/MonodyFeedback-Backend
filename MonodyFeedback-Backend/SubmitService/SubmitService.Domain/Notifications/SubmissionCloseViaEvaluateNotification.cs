@@ -4,7 +4,7 @@ using SubmitService.Domain.Entities;
 namespace SubmitService.Domain.Notifications;
 
 /// <summary>
-/// Submission进入已关闭状态
+/// Submission被提交者（通过评价）关闭
 /// </summary>
 /// <param name="Submission"></param>
-public record SubmissionCloseNotification(Submission Submission) : INotification;
+public record SubmissionCloseViaEvaluateNotification(Submission Submission) : INotification;

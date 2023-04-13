@@ -1,5 +1,6 @@
 ﻿using SubmitService.Domain.Entities;
 using SubmitService.Domain.Entities.Enums;
+using SubmitService.Domain.Notifications;
 using System.Reflection.Metadata;
 
 namespace SubmitService.Domain;
@@ -78,7 +79,8 @@ public class SubmitDomainService
         }
 
         submission.AddParagraph(textContent, Sender.Submitter, pictures)
-            .ChangeStatus(SubmissionStatus.ToBeProcessed);
+            .ChangeStatus(SubmissionStatus.ToBeProcessed)
+            .AddDomainEventIfAbsent(new SubmissionToBeProcessedNotification(submission));
         return true;
     }
 

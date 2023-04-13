@@ -95,11 +95,59 @@ public class ProcessorController : ControllerBase
     {
         if (status == SubmissionStatus.ToBeAssigned || status == SubmissionStatus.ToBeProcessed)
         {
-            return BadRequest($"调错方法了：“{status}”状态的问题列表不可以用GetSubmissionInfosOfStatus来获取");
+            return BadRequest($"调错方法了：“{status}”状态的问题列表不可以用GetSubmissionInfosOfStatus来获取，因为排序方式不一样");
         }
 
         Guid processorId = Guid.Parse(this.User.FindFirstValue(ClaimTypes.NameIdentifier));
         return await _repository.GetSubmissionInfosOfProcessorInStatus_InOrderFromLaterToEarly_Async(processorId, status);
+    }
+
+    /// <summary>
+    /// 获取处理者拥有的某种状态的问题的数量
+    /// </summary>
+    [HttpGet("{status}")]
+    public async Task<ActionResult<int>> GetNumberOfSubmissionsInStatus(SubmissionStatus status)
+    {
+        if (status == SubmissionStatus.ToBeAssigned)
+        {
+            return BadRequest("不可以试图获取处理者拥有的“待分配”问题数量");
+        }
+
+        Guid processorId = Guid.Parse(this.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        return await _dbContext.Submissions
+            .Where(submission => submission.ProcessorId == processorId)
+            .Where(submission => submission.SubmissionStatus == status)
+            .CountAsync();
+    }
+
+    /// <summary>
+    /// 分页地获取处理者的某个状态的全部问题的简略信息
+    /// </summary>
+    /// <returns>按照最后交互时间从晚到早排序</returns>
+    [HttpGet("{status}/page/{page}")]
+    public async Task<ActionResult<List<SubmissionInfo>>> GetPaginatedSubmissionInfosInStatus(SubmissionStatus status, int page, int pageSize)
+    {
+        // Get请求不能有请求体，无法使用FluentValidation进行数据校验；倒是可以改成Put请求，但这严重不符合Http语义；
+        // 故就这么一个if一个if地写了
+        if (status == SubmissionStatus.ToBeAssigned)
+        {
+            return BadRequest("不可以试图查询处理者拥有的“待分配”问题");
+        }
+        if(status == SubmissionStatus.ToBeProcessed)
+        {
+            return BadRequest("调错方法了：“未处理”状态的问题列表不可以用GetPainatedSubmissionInfosInStatus来获取，因为排序方式不一样");
+        }
+        if (page < 1)
+        {
+            return BadRequest("页码不得小于1");
+        }
+        if (pageSize < 3)
+        {
+            return BadRequest("一页至少3个");
+        }
+
+        Guid processorId = Guid.Parse(this.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        return await _repository.PaginatlyGetSubmissionInfosOfProcessor_InStatus_InOrderFromLaterToEarly_Async(processorId, status, page, pageSize);
     }
 
     /// <summary>

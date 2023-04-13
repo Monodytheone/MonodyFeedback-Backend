@@ -17,6 +17,8 @@ using CommonInfrastructure.Filters.Transaction;
 using FluentValidation;
 using SubmitService.Process.WebAPI.Controllers.Requests;
 using SubmitService.Process.WebAPI;
+using SubmitService.Process.WebAPI.Hubs;
+using Microsoft.Extensions.Primitives;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +49,26 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = secKey,
+    };
+
+    // SignalR身份认证：
+    jwtBearerOpt.Events = new JwtBearerEvents
+    {
+        // WebSocket不支持自定义报文头
+        // 所以需要把JWT通过Url的QueryString传递
+        // 然后在服务端的OnMessageReceived中，把QueryString中的JWT读出来，赋给context.Token
+        // 这样后续中间件才能从context.Token中解析出Token
+        OnMessageReceived = context =>
+        {
+            StringValues accessToken = context.Request.Query["access_token"];
+            PathString path = context.HttpContext.Request.Path;
+            if (string.IsNullOrEmpty(accessToken) == false 
+                && (path.StartsWithSegments("/SubmitterHub") || path.StartsWithSegments("/CommonHub")))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -91,6 +113,9 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(builder => builder.
 // 托管服务
 builder.Services.AddHostedService<AutoCloseHostedService>();
 
+// SignalR
+builder.Services.AddSignalR();
+
 
 var app = builder.Build();
 
@@ -108,6 +133,8 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHub<CommonHub>("/CommonHub");
+app.MapHub<SubmitterHub>("/SubmitterHub");
 app.MapControllers();
 
 app.Run();

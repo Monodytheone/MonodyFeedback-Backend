@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using SubmitService.Domain;
 using SubmitService.Domain.Entities;
 using SubmitService.Domain.Entities.Enums;
+using SubmitService.Domain.Notifications;
 
 namespace SubmitService.Infrastructure;
 
@@ -42,7 +43,9 @@ public class SubmitRepository : ISubmitRepository
             .Where(submission => submission.SubmitterId == submitterGuid)
             .Select(submission => new SubmissionInfo(  // 性能优化：只获取需要的列
                 submission.Id.ToString(),
-                submission.Paragraphs[0].TextContent.GetFirst15Wrods(),  // 第一个Paragraph的前15个字符
+                submission.Paragraphs
+                    .Single(paragraph => paragraph.SequenceInSubmission == 1)
+                    .TextContent.GetFirst15Wrods(),  // 第一个Paragraph的前15个字符
                 submission.LastInteractionTime,
                 submission.SubmissionStatus
             ));  // 不能从这里继续OrderBy了，无法生成Sql语句
@@ -61,7 +64,9 @@ public class SubmitRepository : ISubmitRepository
                 && submission.SubmissionStatus == SubmissionStatus.ToBeProcessed)
             .Select(submission => new SubmissionInfo(
                 submission.Id.ToString(),
-                submission.Paragraphs[0].TextContent.GetFirst15Wrods(),  // 第一个Paragraph的前15个字符
+                submission.Paragraphs
+                    .Single(paragraph => paragraph.SequenceInSubmission == 1)
+                    .TextContent.GetFirst15Wrods(),  // 第一个Paragraph的前15个字符
                 submission.LastInteractionTime,
                 submission.SubmissionStatus
             ));
@@ -86,6 +91,26 @@ public class SubmitRepository : ISubmitRepository
             ));
         return (await submissionInfos.ToListAsync())
             .OrderByDescending(info => info.LastInteractionTime).ToList();
+    }
+
+
+    public Task<List<SubmissionInfo>> PaginatlyGetSubmissionInfosOfProcessor_InStatus_InOrderFromLaterToEarly_Async
+        (Guid processorId, SubmissionStatus status, int page, int pageSize = 10)
+    {
+        int numOfSkip = (page - 1) * pageSize;
+        return _dbContext.Submissions
+            .AsNoTracking()
+            .Include(submission => submission.Paragraphs)
+            .Where(submission => submission.ProcessorId == processorId && submission.SubmissionStatus == status)
+            .OrderByDescending(submission => submission.LastInteractionTime)
+            .Skip(numOfSkip).Take(pageSize)
+            .Select(submission => new SubmissionInfo(
+                submission.Id.ToString(),
+                submission.Paragraphs.First(paragraph => paragraph.SequenceInSubmission == 1).TextContent.GetFirst15Wrods(),
+                submission.LastInteractionTime,
+                submission.SubmissionStatus
+            ))
+            .ToListAsync();
     }
 
     public Task<int> GetToBeProcessedNumberOfProcessorAsync(string processorId)
@@ -144,7 +169,7 @@ public class SubmitRepository : ISubmitRepository
     {
         DateTime limitTime = (DateTime.Now - waitingTime);
         IQueryable<Submission> unevaluatedSubmissions = _dbContext.Submissions
-            .Include(submission => submission.Paragraphs)  // 创建Paragraph时需要用到paragraph的数量
+            .Include(submission => submission.Paragraphs)  // 创建Paragraph时需要用到已拥有的paragraph的数量
             // 下面两个都无法被翻译为Sql语句：
             //.Where(submission => DateTime.Now - submission.LastInteractionTime > waitingTime)
             //.Where(submission => submission.LastInteractionTime < DateTime.Now - waitingTime)
@@ -152,7 +177,9 @@ public class SubmitRepository : ISubmitRepository
             .Where(submission => submission.SubmissionStatus == SubmissionStatus.ToBeEvaluated);
         await unevaluatedSubmissions.ForEachAsync(submission =>
         {
-            submission.AddParagraph("因长时间未评价，问题已自动关闭", Sender.System, new()).Close();
+            submission.AddParagraph("因长时间未评价，问题已自动关闭", Sender.System, new())
+                .Close()
+                .AddDomainEventIfAbsent(new SubmissionUnevaluatedForLongAutoCloseNotification(submission));
         });
         await _dbContext.SaveChangesAsync();
     }
@@ -166,8 +193,21 @@ public class SubmitRepository : ISubmitRepository
             .Where(submission => submission.SubmissionStatus == SubmissionStatus.ToBeSupplemented);
         await unsupplementSubmissions.ForEachAsync(submission =>
         {
-            submission.AddParagraph("因长时间未完善，问题已自动关闭", Sender.System, new()).Close();
+            submission.AddParagraph("因长时间未完善，问题已自动关闭", Sender.System, new())
+            .Close()
+            .AddDomainEventIfAbsent(new SubmissionUnsupplementForLongAutoCloseNotification(submission));
         });
         await _dbContext.SaveChangesAsync();
+    }
+
+    public string GetDescribeOfSubmission(Guid submissionId)
+    {
+        return _dbContext.Submissions
+            .AsNoTracking()
+            .Include(submission => submission.Paragraphs)
+            .First(submission => submission.Id == submissionId)
+            .Paragraphs
+            .Single(paragraph => paragraph.SequenceInSubmission == 1)
+            .TextContent.GetFirst15Wrods();
     }
 }
