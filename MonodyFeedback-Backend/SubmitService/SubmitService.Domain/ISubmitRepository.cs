@@ -44,4 +44,6 @@ public interface ISubmitRepository
     /// 关闭长时间未完善的Submission
     /// </summary>
     public Task CloseSubmissionsUnsupplementedForLongAsync(TimeSpan waitingTime);
+
+    public string GetDescribeOfSubmission(Guid submissionId);
 }

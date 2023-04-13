@@ -30,15 +30,17 @@ public class AutoCloseHostedService : BackgroundService
         bool closeUnevaluated = true;
         while (stoppingToken.IsCancellationRequested == false)
         {
+            // 为了看效果，执行间隔和超期时间设得比较短（5分钟执行一次，20分钟未评价/未完善即自动关闭）
+            // 实际生产中可以设为半小时执行一次（或随机设置执行间隔防止数据库压力“雪崩”），超期时间两天
             try
             {
                 if (closeUnevaluated)
                 {
-                    await _domainService.CloseSubmissionsWaitLong_InToBeEvaluatedStatus_Async();
+                    await _domainService.CloseSubmissionsWaitLong_InToBeEvaluatedStatus_Async(1200);
                 }
                 else
                 {
-                    await _domainService.CloseSubmissionsWaitLong_InToBeSupplementStatus_Async();
+                    await _domainService.CloseSubmissionsWaitLong_InToBeSupplementStatus_Async(1200);
                 }
             }
             catch(Exception ex) 
@@ -49,7 +51,7 @@ public class AutoCloseHostedService : BackgroundService
             finally
             {
                 closeUnevaluated = !closeUnevaluated;
-                await Task.Delay(TimeSpan.FromSeconds(1800));  // 每半小时执行一次
+                await Task.Delay(TimeSpan.FromSeconds(300));
             }
         }
     }
