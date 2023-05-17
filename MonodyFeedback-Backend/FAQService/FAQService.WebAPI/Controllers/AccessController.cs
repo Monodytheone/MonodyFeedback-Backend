@@ -44,12 +44,16 @@ public class AccessController : ControllerBase
     [NotCheckJWT]
     [HttpGet("{pageId}")]
     [ResponseCache(Duration = 5)]
-    public async Task<GetPageResponse> GetPage(Guid pageId)
+    public async Task<ActionResult<GetPageResponse>> GetPage(Guid pageId)
     {
-        GetPageResponse response = await _memoryCacheHelper.GetOrCreateAsync($"Page{pageId}", cacheEntry =>
+        GetPageResponse? response = await _memoryCacheHelper.GetOrCreateAsync($"Page{pageId}", cacheEntry =>
         {
             return _accessRepository.GetPageAsync(pageId);
         }, 5);
+        if (response == null)
+        {
+            return NotFound($"pageId = {pageId} 不存在");
+        }
         return response;
     }
 
