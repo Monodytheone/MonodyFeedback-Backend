@@ -59,8 +59,7 @@ public class RepositoryForAccess
                         .Select(q => new QandAVM(q.Question, q.Answer))
                         .ToList()
                     )
-            }
-            )
+            })
             .FirstOrDefaultAsync(a => a.Id == pageId);
         if (page == null)
         {
