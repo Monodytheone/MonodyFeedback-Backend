@@ -57,5 +57,33 @@ public class AccessController : ControllerBase
         return response;
     }
 
+    /// <summary>
+    /// 获取所有的TabName和每个Tab中所有问题的标题（用于在主页展示）
+    /// <para>master专用，不缓存</para>
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet]
+    [Authorize(Roles = "master")]
+    public Task<List<TabVM>> MasterGetFAQInfoForHomePage()
+    {
+        return _accessRepository.GetFAQInfoForHomePageAsync();
+    }
 
+    /// <summary>
+    /// 获取展示Page所需的全部信息
+    /// <para>master专用，不缓存</para>
+    /// </summary>
+    /// <param name="pageId"></param>
+    /// <returns></returns>
+    [Authorize(Roles = "master")]
+    [HttpGet("{pageId}")]
+    public async Task<ActionResult<GetPageResponse>> MasterGetPage(Guid pageId)
+    {
+        GetPageResponse? response = await _accessRepository.GetPageAsync(pageId);
+        if (response == null)
+        {
+            return NotFound($"pageId = {pageId} 不存在");
+        }
+        return response;
+    }
 }
