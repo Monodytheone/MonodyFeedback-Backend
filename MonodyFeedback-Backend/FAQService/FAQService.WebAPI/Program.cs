@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Data.SqlClient;
 using Zack.JWT;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -14,6 +14,7 @@ using CommonInfrastructure.Filters.Transaction;
 using CommonInfrastructure.Filters;
 using FluentValidation;
 using FAQService.WebAPI.Controllers;
+using FAQService.WebAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +25,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// ���ݿ�����ԴZack.AnyDBConfigProvider
+// 数据库配置源Zack.AnyDBConfigProvider
 builder.WebHost.ConfigureAppConfiguration((hostCtx, configBuilder) =>
 {
     string connStr = Environment.GetEnvironmentVariable("ConnectionStrings:MonodyFeedBackDB")!;
@@ -54,13 +55,16 @@ builder.Services.AddDbContext<FAQDbContext>(optionsBuilder =>
     optionsBuilder.UseSqlServer(connStr);
 });
 
-// DI����ע��
-builder.Services.AddScoped<IJWTVersionTool, JWTVersionToolForOtherServices>();  // JWTVersionɸѡ����ȡ�����JWT�Ĺ���
-builder.Services.AddHttpClient();  // Ϊ�˽�IHttpClientFactoryע���JWTVersionToolForOtherServices
+// DI服务注册
+builder.Services.AddScoped<IJWTVersionTool, JWTVersionToolForOtherServices>();  // JWTVersion筛选器获取服务端JWT的工具
+builder.Services.AddHttpClient();  // 为了将IHttpClientFactory注入进JWTVersionToolForOtherServices
 builder.Services.AddScoped<FAQDomainService>();
 builder.Services.AddScoped<IFAQRepository, FAQRepository>();
+builder.Services.AddScoped<IMemoryCacheHelper, MemoryCacheHelper>();// Zack.ASPNETCore中的缓存工具，实现了过期时间的自动设置，防止缓存雪崩
+builder.Services.AddScoped<RepositoryForAccess>();
+builder.Services.AddMemoryCache();  // 启用内存缓存
 
-// ɸѡ��
+// 筛选器
 builder.Services.Configure<MvcOptions>(options =>
 {
     options.Filters.Add<UnitOfWorkFilter>();
@@ -72,7 +76,7 @@ builder.Services.Configure<MvcOptions>(options =>
 // FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<AccessController>();
 
-// ����
+// 跨域
 var urls = new string[] { builder.Configuration.GetSection("CORSUrl").Value };
 builder.Services.AddCors(options => options.AddDefaultPolicy(builder => builder.WithOrigins(urls).AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 
@@ -92,6 +96,8 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseResponseCaching();  // 启用服务端响应缓存
 
 app.MapControllers();
 
