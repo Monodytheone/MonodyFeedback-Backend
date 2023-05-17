@@ -6,7 +6,8 @@ namespace FAQService.Infrastructure;
 public class FAQDbContext : DbContext
 {
     public DbSet<Tab> Tabs { get; private set; }
-
+    public DbSet<Page> Pages { get; private set; }
+    public DbSet<QandA> QandAs { get; private set; }
 
     public FAQDbContext(DbContextOptions<FAQDbContext> options) : base(options)
     {

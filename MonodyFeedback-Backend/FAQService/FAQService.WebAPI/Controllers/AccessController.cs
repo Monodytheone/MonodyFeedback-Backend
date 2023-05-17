@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Zack.ASPNETCore;
 
 namespace FAQService.WebAPI.Controllers;
 
@@ -6,4 +8,5 @@ namespace FAQService.WebAPI.Controllers;
 [ApiController]
 public class AccessController : ControllerBase
 {
+
 }

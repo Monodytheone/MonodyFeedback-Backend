@@ -41,6 +41,21 @@ public class Page
         return this;
     }
 
+    public Page ToPureQandA()
+    {
+        IsPureQandA = true;
+        HtmlUrl = null;
+        return this;
+    }
+
+    public Page ToHtml(string htmlUrl)
+    {
+        IsPureQandA = false;
+        QandAs.Clear();
+        HtmlUrl = htmlUrl;
+        return this;
+    }
+
     // 简单一点，把sequence的获取放到领域服务里吧
     public Page AddQandA(int sequenceInPage, string answer, string question)
     {
@@ -48,7 +63,7 @@ public class Page
         {
             throw new FieldAccessException("内容为外部html的Page不得直接添加Q&A");
         }
-        QandAs.Add(new QandA(sequenceInPage, answer, question));
+        QandAs.Add(new QandA(sequenceInPage, question, answer));
         return this;
     }
 
