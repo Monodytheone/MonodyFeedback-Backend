@@ -148,7 +148,7 @@ public class ManageController : ControllerBase
     }
 
     [HttpPut]
-    public async Task<ActionResult> ChangeHotStatusOfPage(Guid pageId, bool hotStatus)
+    public async Task<ActionResult> ChangeHotStatusOfPage(Guid pageId, bool isHot)
     {
         Page? page = await _dbContext.Pages.FirstOrDefaultAsync(page => page.Id == pageId);
         if (page == null)
@@ -156,7 +156,7 @@ public class ManageController : ControllerBase
             return BadRequest($"修改Page的Hot状态时，PageId = {pageId} 不存在");
         }
 
-        page.ChangeIsHot(hotStatus);
+        page.ChangeIsHot(isHot);
         return Ok();
     }
 
@@ -178,6 +178,7 @@ public class ManageController : ControllerBase
         return Ok();
     }
 
+
     [HttpPut]
     public async Task<ActionResult> ChangePageContentToHtml(Guid pageId, string htmlUrl)
     {
@@ -194,6 +195,23 @@ public class ManageController : ControllerBase
         }
 
         page.ToHtml(htmlUrl);
+        return Ok();
+    }
+
+    [HttpPut]
+    public async Task<ActionResult> ChangePageHtmlUrl(Guid pageId, string newUrl)
+    {
+        Page? page = await _dbContext.Pages
+            .FirstOrDefaultAsync (page => page.Id == pageId);
+        if (page == null)
+        {
+            return BadRequest($"试图更改页面的HtmlUrl时，PageId = {pageId} 不存在");
+        }
+        if (page.IsPureQandA)
+        {
+            return BadRequest($"不得对纯Q&A页面 PageId = {pageId} 设置HtmlUrl");
+        }
+        page.ToHtml(newUrl);
         return Ok();
     }
 

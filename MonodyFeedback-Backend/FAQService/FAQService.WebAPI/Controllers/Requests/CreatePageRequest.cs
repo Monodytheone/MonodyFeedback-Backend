@@ -8,6 +8,6 @@ public class CreatePageRequestValidator : AbstractValidator<CreatePageRequest>
 {
     public CreatePageRequestValidator()
     {
-        RuleFor(r => r.Title).NotEmpty().Length(1, 8);
+        RuleFor(r => r.Title).NotEmpty().Length(1, 50);
     }
 }

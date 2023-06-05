@@ -54,9 +54,9 @@ public class RepositoryForAccess
             .Select(page => new
             {
                 page.Id,
-                Response = new GetPageResponse(page.IsPureQandA, page.HtmlUrl, page.QandAs
+                Response = new GetPageResponse(page.IsPureQandA, page.Title, page.HtmlUrl, page.QandAs
                         .OrderBy(q => q.Sequence)
-                        .Select(q => new QandAVM(q.Question, q.Answer))
+                        .Select(q => new QandAVM(q.Id, q.Question, q.Answer))
                         .ToList()
                     )
             })

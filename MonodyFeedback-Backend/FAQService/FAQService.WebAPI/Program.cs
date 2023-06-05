@@ -67,8 +67,8 @@ builder.Services.AddMemoryCache();  // 启用内存缓存
 // 筛选器
 builder.Services.Configure<MvcOptions>(options =>
 {
-    options.Filters.Add<UnitOfWorkFilter>();
     options.Filters.Add<TransactionScopeFilter>();
+    options.Filters.Add<UnitOfWorkFilter>();
     options.Filters.Add<ExceptionFilter>();
     options.Filters.Add<JWTVersionCheckFilter>();
 });

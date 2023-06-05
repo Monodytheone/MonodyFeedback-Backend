@@ -137,6 +137,13 @@ public class IdentityController : ControllerBase
         return new(this.User.FindFirstValue(ClaimTypes.NameIdentifier), this.User.FindFirstValue(ClaimTypes.Name));
     }
 
+    [HttpGet]
+    [Authorize(Roles = "master")]
+    public GetUserInfoResponse GetMasterInfo()
+    {
+        return new(this.User.FindFirstValue(ClaimTypes.NameIdentifier), this.User.FindFirstValue(ClaimTypes.Name));
+    }
+
     [HttpPost]
     [Authorize(Roles = "submitter")]  // 只有普通用户可以通过旧密码设置新密码
     public async Task<ActionResult> ChangeSubmitterPasswordWithJWT(ChangeSubmitterPasswordWithJWTRequest request)
