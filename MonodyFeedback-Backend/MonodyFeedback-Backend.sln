@@ -15,13 +15,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonInfrastructure", "Com
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SubmitService", "SubmitService", "{8678D50B-1D78-47D1-AA07-CD3AC91209F5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubmitService.Domain", "SubmitService\SubmitService.Domain\SubmitService.Domain.csproj", "{65D1545F-A2E5-4559-B4E3-EFD1BB146E8F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubmitService.Domain", "SubmitService\SubmitService.Domain\SubmitService.Domain.csproj", "{65D1545F-A2E5-4559-B4E3-EFD1BB146E8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubmitService.Infrastructure", "SubmitService\SubmitService.Infrastructure\SubmitService.Infrastructure.csproj", "{188EE80E-E9DB-4CBB-8BB3-5D151EA686ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubmitService.Infrastructure", "SubmitService\SubmitService.Infrastructure\SubmitService.Infrastructure.csproj", "{188EE80E-E9DB-4CBB-8BB3-5D151EA686ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubmitService.Submit.WebAPI", "SubmitService\SubmitService.Submit.WebAPI\SubmitService.Submit.WebAPI.csproj", "{51384F08-96A1-40AD-8E51-C3F01B887928}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubmitService.Submit.WebAPI", "SubmitService\SubmitService.Submit.WebAPI\SubmitService.Submit.WebAPI.csproj", "{51384F08-96A1-40AD-8E51-C3F01B887928}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubmitService.Process.WebAPI", "SubmitService\SubmitService.Process.WebAPI\SubmitService.Process.WebAPI.csproj", "{BA6D1BFC-FBD2-4884-8D5E-2B2664C26CEF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubmitService.Process.WebAPI", "SubmitService\SubmitService.Process.WebAPI\SubmitService.Process.WebAPI.csproj", "{BA6D1BFC-FBD2-4884-8D5E-2B2664C26CEF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FAQService", "FAQService", "{B72DC726-8C78-435B-9B0E-3D52843A3837}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FAQService.Domain", "FAQService\FAQService.Domain\FAQService.Domain.csproj", "{FC41945F-2D82-4DB0-BF76-C8A7F19425BE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FAQService.Infrastructure", "FAQService\FAQService.Infrastructure\FAQService.Infrastructure.csproj", "{CCFD8041-DF0F-49E5-A5A1-24B117E64103}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FAQService.WebAPI", "FAQService\FAQService.WebAPI\FAQService.WebAPI.csproj", "{58B43401-8520-4F1F-9529-CC37ED1A02B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,6 +69,18 @@ Global
 		{BA6D1BFC-FBD2-4884-8D5E-2B2664C26CEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA6D1BFC-FBD2-4884-8D5E-2B2664C26CEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA6D1BFC-FBD2-4884-8D5E-2B2664C26CEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC41945F-2D82-4DB0-BF76-C8A7F19425BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC41945F-2D82-4DB0-BF76-C8A7F19425BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC41945F-2D82-4DB0-BF76-C8A7F19425BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC41945F-2D82-4DB0-BF76-C8A7F19425BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCFD8041-DF0F-49E5-A5A1-24B117E64103}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCFD8041-DF0F-49E5-A5A1-24B117E64103}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCFD8041-DF0F-49E5-A5A1-24B117E64103}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCFD8041-DF0F-49E5-A5A1-24B117E64103}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58B43401-8520-4F1F-9529-CC37ED1A02B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58B43401-8520-4F1F-9529-CC37ED1A02B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58B43401-8520-4F1F-9529-CC37ED1A02B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58B43401-8520-4F1F-9529-CC37ED1A02B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -73,6 +93,9 @@ Global
 		{188EE80E-E9DB-4CBB-8BB3-5D151EA686ED} = {8678D50B-1D78-47D1-AA07-CD3AC91209F5}
 		{51384F08-96A1-40AD-8E51-C3F01B887928} = {8678D50B-1D78-47D1-AA07-CD3AC91209F5}
 		{BA6D1BFC-FBD2-4884-8D5E-2B2664C26CEF} = {8678D50B-1D78-47D1-AA07-CD3AC91209F5}
+		{FC41945F-2D82-4DB0-BF76-C8A7F19425BE} = {B72DC726-8C78-435B-9B0E-3D52843A3837}
+		{CCFD8041-DF0F-49E5-A5A1-24B117E64103} = {B72DC726-8C78-435B-9B0E-3D52843A3837}
+		{58B43401-8520-4F1F-9529-CC37ED1A02B0} = {B72DC726-8C78-435B-9B0E-3D52843A3837}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D1172683-79E6-458A-847F-7389D85C4D81}
